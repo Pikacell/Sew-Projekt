@@ -10,6 +10,8 @@ https://zetcode.com/gui/javafx/firstprograms/
  */
         System.out.println("Hallo Sophie!");
         System.out.println("Marschel ist dumm");
+        System.out.println("Stegan ist nett");
+
 
 /*
 
