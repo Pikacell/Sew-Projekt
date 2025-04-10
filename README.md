@@ -10,36 +10,24 @@ Vor dem Kampf wählt jeder Spieler eine von zehn spielbaren Klassen. Jede Klasse
 
 Verfügbare Klassen:
 
-Swordsman
-
-Ninja
-
-Knight
-
-Mage
-
-Archer
-
-Royal Guard
-
-Spearman
-
-Berserker
-
-Monk
+- Swordsman
+- Ninja
+- Knight
+- Mage
+- Archer
+- Royal Guard
+- Spearman
+- Berserker
+- Monk
 
 2. Steuerung & Kampfmechanik:
 
 Spieler 1:
-
 Bewegung: W (vor), A (links), D (rechts)
-
 Attacken: F (Attacke 1), G (Attacke 2)
 
 Spieler 2:
-
 Bewegung: Pfeiltasten ↑, ←, →
-
 Attacken: K (Attacke 1), L (Attacke 2)
 
 Ziel ist es, den Gegner mit gezielten Angriffen zu besiegen. Unterschiedliche Klassen ermöglichen verschiedene Spielstile wie Nahkampf, Fernkampf oder schnelle Bewegungen.
@@ -47,15 +35,11 @@ Ziel ist es, den Gegner mit gezielten Angriffen zu besiegen. Unterschiedliche Kl
 3. Physik und Projektilverhalten:
 
 Projektile (z. B. Pfeile, Magiekugeln) werden durch Schwerkraft beeinflusst und verlieren mit der Zeit an Höhe.
-
 Es gibt eine physikbasierte Kollisionserkennung mit Spielern und Hindernissen.
 
 4. Technische Umsetzung:
 
 Programmiersprache: Java
-
 Game-Engine: LibGDX
-
 Entwicklungsumgebung: IntelliJ IDEA oder Eclipse
-
 Grafiken: Eigene Pixel-Art
