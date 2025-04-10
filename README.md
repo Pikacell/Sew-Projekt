@@ -41,5 +41,5 @@ Es gibt eine physikbasierte Kollisionserkennung mit Spielern und Hindernissen.
 
 Programmiersprache: Java
 Game-Engine: LibGDX
-Entwicklungsumgebung: IntelliJ IDEA oder Eclipse
+Entwicklungsumgebung: IntelliJ IDEA
 Grafiken: Eigene Pixel-Art
