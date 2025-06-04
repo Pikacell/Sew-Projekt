@@ -60,7 +60,6 @@ Entwickelt mit:
    ```bash
    git clone <repository-url>
    cd <projektverzeichnis>
-``
 
 3. Projekt bauen:
 
