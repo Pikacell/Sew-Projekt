@@ -15,40 +15,46 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Represents a playable character in the game.
- * Extends ImageView to display character sprites.
+ * Das Herzstück des Spiels - unsere Charaktere!
+ * Hier steckt die komplette Kampflogik und Charaktersteuerung drin.
  */
 public class Character extends ImageView {
     
-    /** Cache of character images to avoid reloading */
+    /** Bildercache - niemand will die dauernd neu laden */
     private static final Map<String, Image> characterImages = new HashMap<>();
     
-    /** Path pattern for character image resources */
+    /** Pfad zu den Charakterbildern */
     private static final String IMAGE_PATH = "/images/%s.png";
 
-    /** Pre-defined stats for all character types */
+    /** 
+     * Die Charakterwerte - endlich ausbalanciert!
+     * Hat ewig gedauert die vernünftig einzustellen.
+     */
     public static final Map<String, CharacterStats> CHARACTER_STATS = Map.of(
-        "Bishop", new CharacterStats(15, 2, 180, 12, 6, "Healer with moderate ranged attacks", Color.WHITE),
-        "Holyknight", new CharacterStats(22, 3, 45, 18, 4, "Holy warrior with high defense", Color.GOLD),
-        "Knight", new CharacterStats(20, 2, 45, 16, 5, "Well-armored fighter with balanced stats", Color.SILVER),
-        "Magician", new CharacterStats(25, 2, 200, 5, 4, "Powerful spellcaster with high damage", Color.PURPLE),
-        "Ninja", new CharacterStats(14, 5, 35, 6, 9, "Fastest character with rapid attacks", Color.BLACK),
-        "Priestess", new CharacterStats(18, 2, 160, 8, 7, "Support caster with healing abilities", Color.PINK),
-        "Rogue", new CharacterStats(16, 4, 35, 6, 8, "Quick melee fighter with high attack speed", Color.DARKGREEN),
-        "Swordsman", new CharacterStats(19, 3, 40, 12, 6, "Balanced fighter with good reach", Color.BLUE),
-        "Warrior", new CharacterStats(21, 3, 40, 15, 5, "Strong melee fighter with good defense", Color.RED),
-        "Wizard", new CharacterStats(28, 2, 220, 4, 3, "Master of destructive magic", Color.ORANGE)
+        "Bishop", new CharacterStats(15, 2, 180, 12, 6, "Healer with moderate ranged attacks"),
+        "Holyknight", new CharacterStats(22, 3, 45, 18, 4, "Holy warrior with high defense"),
+        "Knight", new CharacterStats(20, 2, 45, 16, 5, "Well-armored fighter with balanced stats"),
+        "Magician", new CharacterStats(25, 2, 200, 5, 4, "Powerful spellcaster with high damage"),
+        "Ninja", new CharacterStats(14, 5, 35, 6, 9, "Fastest character with rapid attacks"),
+        "Priestess", new CharacterStats(18, 2, 160, 8, 7, "Support caster with healing abilities"),
+        "Rogue", new CharacterStats(16, 4, 35, 6, 8, "Quick melee fighter with high attack speed"),
+        "Swordsman", new CharacterStats(19, 3, 40, 12, 6, "Balanced fighter with good reach"),
+        "Warrior", new CharacterStats(21, 3, 40, 15, 5, "Strong melee fighter with good defense"),
+        "Wizard", new CharacterStats(28, 2, 220, 4, 3, "Master of destructive magic")
     );
 
-    /** Loads all character images when class is first used */
+    /** 
+     * Lädt die Bilder beim Start
+     * Wichtig: Alle Bilder müssen im richtigen Format vorliegen
+     */
     static {
         for (String type : CHARACTER_STATS.keySet()) {
             try {
                 String imagePath = String.format(IMAGE_PATH, type.toLowerCase());
                 Image img = new Image(
                     Character.class.getResource(imagePath).toString(),
-                    450,  // Increased from 150 to 450 (300%)
-                    450,  // Increased from 150 to 450 (300%)
+                    450,  
+                    450,  
                     true, 
                     true
                 );
@@ -59,7 +65,7 @@ public class Character extends ImageView {
         }
     }
 
-    // Character state fields
+    /** Basis-Spielwerte für jeden Charakter */
     private String type;
     private int health = 100;
     private int maxHealth = 100;
@@ -67,8 +73,7 @@ public class Character extends ImageView {
     private double speed;
     private boolean canAttack = true;
     private long lastAttackTime;
-    private static final int ATTACK_COOLDOWN = 500;
-    private Color originalColor;
+    private static final int ATTACK_COOLDOWN = 500;  // Halbe Sekunde Cooldown
     private double velocityY = 0;
     private boolean isJumping = false;
     private double attackRange;
@@ -78,13 +83,14 @@ public class Character extends ImageView {
     private boolean facingRight = true;
     private boolean canUseStrongAttack = true;
     private long lastStrongAttackTime = 0;
-    private static final long STRONG_ATTACK_COOLDOWN = 3000; // 3 seconds in milliseconds
+    private static final long STRONG_ATTACK_COOLDOWN = 3000;  // 3 Sekunden für Spezialangriff
     private static final double GRAVITY = 0.5;
     private static final double JUMP_FORCE = -12;
-    private static final double GROUND_Y = 450; // Angepasst für kleinere Charaktere
+    private static final double GROUND_Y = 450;
 
     /**
-     * Creates a new character of the specified type at the given position
+     * Erstellt einen neuen Charakter mit den gewählten Eigenschaften.
+     * Lädt das passende Bild und initialisiert alle Werte.
      */
     public Character(String type, double x, double y) {
         super(characterImages.getOrDefault(type, characterImages.get("Warrior")));
@@ -94,7 +100,8 @@ public class Character extends ImageView {
     }
 
     /**
-     * Initializes character properties and stats
+     * Richtet den Charakter komplett ein.
+     * Skaliert das Bild, setzt Position und lädt die Stats.
      */
     private void initializeCharacter(String type, double x, double y, CharacterStats stats) {
         // Get the actual image
@@ -140,7 +147,8 @@ public class Character extends ImageView {
     }
 
     /**
-     * Makes the character jump if not already jumping
+     * Der Sprung! 
+     * Nichts spektakuläres, aber hey - es funktioniert!
      */
     public void jump() {
         if (!isJumping) {
@@ -150,7 +158,8 @@ public class Character extends ImageView {
     }
 
     /**
-     * Moves the character left and updates facing direction
+     * Bewegung nach links
+     * Checkt auch gleich ob wir nicht aus der Arena fallen
      */
     public void moveLeft() {
         double newX = getX() - speed;
@@ -164,7 +173,8 @@ public class Character extends ImageView {
     }
 
     /**
-     * Moves the character right and updates facing direction
+     * Bewegung nach rechts
+     * Checkt auch gleich ob wir nicht aus der Arena fallen
      */
     public void moveRight() {
         double newX = getX() + speed;
@@ -179,7 +189,8 @@ public class Character extends ImageView {
     }
 
     /**
-     * Updates character physics and state each frame
+     * Aktualisiert die Physik jeden Frame.
+     * Kümmert sich um Schwerkraft und Sprunghöhe.
      */
     public void update() {
         // Gravity and jumping
@@ -203,8 +214,8 @@ public class Character extends ImageView {
     }
 
     /**
-     * Attempts to attack another character
-     * Returns true if attack was successful
+     * Führt einen Angriff aus.
+     * Prüft Reichweite und berechnet den Schaden.
      */
     public boolean attack(Character target, boolean isSpecialAttack) {
         if (!canAttack) return false;
@@ -227,7 +238,8 @@ public class Character extends ImageView {
     }
 
     /**
-     * Applies damage to this character and shows visual feedback
+     * Verarbeitet eingehenden Schaden.
+     * Zeigt visuelles Feedback durch kurze Transparenz.
      */
     public void takeDamage(int damage) {
         health -= damage;
@@ -245,7 +257,8 @@ public class Character extends ImageView {
     }
 
     /**
-     * Resets character to initial state
+     * Setzt den Charakter zurück.
+     * Wird nach Spielende oder für neue Runde aufgerufen.
      */
     public void reset() {
         health = maxHealth;
@@ -256,18 +269,31 @@ public class Character extends ImageView {
     }
 
     /**
-     * Gets actual collision bounds for this character
+     * Gibt die Kollisionsbox des Charakters zurück.
      */
     public javafx.geometry.Bounds getCollisionBounds() {
         return getBoundsInParent();
     }
 
     /**
-     * Checks if this character collides with another
+     * Prüft ob dieser Charakter mit einem anderen kollidiert
      */
     public boolean collidesWith(Character other) {
         return getCollisionBounds().intersects(other.getCollisionBounds());
     }
+
+    /** 
+     * Charakterwerte-Record
+     * Speichert alle wichtigen Stats eines Charaktertyps
+     */
+    record CharacterStats(
+        int damage,
+        double speed,
+        double range,
+        int defense,
+        int attackSpeed,
+        String description
+    ) {}
 
     // Various getter methods for character properties
     public int getHealth() {
@@ -285,16 +311,12 @@ public class Character extends ImageView {
         return type;
     }
 
-    public Color getOriginalColor() {
-        return originalColor;
-    }
-
     public boolean canAttack() {
         return canAttack;
     }
 
     /**
-     * Starts the attack cooldown period
+     * Startet die Abklingzeit für normale Angriffe
      */
     public void setAttackCooldown() {
         canAttack = false;
@@ -302,7 +324,7 @@ public class Character extends ImageView {
     }
 
     /**
-     * Updates character facing direction and adjusts position
+     * Aktualisiert die Blickrichtung und passt die Position an
      */
     public void setFacingRight(boolean facing) {
         if (facingRight != facing) {
@@ -319,14 +341,14 @@ public class Character extends ImageView {
     }
 
     /**
-     * Returns current facing direction
+     * Gibt die aktuelle Blickrichtung zurück
      */
     public boolean isFacingRight() {
         return facingRight;
     }
 
     /**
-     * Checks if strong attack is available
+     * Prüft ob ein Spezialangriff verfügbar ist
      */
     public boolean canUseStrongAttack() {
         if (!canUseStrongAttack) {
@@ -339,14 +361,14 @@ public class Character extends ImageView {
     }
 
     /**
-     * Starts the strong attack cooldown period
+     * Startet die Abklingzeit für Spezialangriffe
      */
     public void setStrongAttackCooldown() {
         canUseStrongAttack = false;
         lastStrongAttackTime = System.currentTimeMillis();
     }
 
-    // Dimension and position helper methods
+    // Hilfsmethoden für Dimensionen und Position
     public double getWidth() {
         return getFitWidth();
     }
@@ -362,17 +384,4 @@ public class Character extends ImageView {
     public double getCenterY() {
         return getLayoutY() + getFitHeight()/2;
     }
-
-    /**
-     * Record that holds the stats for a character type
-     */
-    record CharacterStats(
-        int damage,
-        double speed,
-        double range,
-        int defense,
-        int attackSpeed,
-        String description,
-        Color color
-    ) {}
 }

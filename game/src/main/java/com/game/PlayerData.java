@@ -8,25 +8,28 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Verwaltet persistente Spielerdaten wie Siege
+ * Verwaltet die Spielerdatenbank.
+ * Speichert Siege und lädt sie beim Spielstart.
  */
 public final class PlayerData {
-    /** Speichert Spielersiege Thread-sicher */
+    /** Thread-sichere Map für die Spielersiege */
     private static final Map<String, Integer> playerWins = new ConcurrentHashMap<>();
     
-    /** Pfad zur Speicherdatei */
+    /** Pfad zur JSON Speicherdatei im Nutzerverzeichnis */
     private static final Path SAVE_PATH = Paths.get(System.getProperty("user.home"), "GameData", "players.json");
 
+    /** Erstellt den Speicherordner falls nötig */
     static {
         try {
             Files.createDirectories(SAVE_PATH.getParent());
         } catch (IOException e) {
-            System.err.println("Could not create save directory: " + e.getMessage());
+            System.err.println("Fehler beim Erstellen des Speicherordners: " + e.getMessage());
         }
     }
 
     /**
-     * Lädt Spielerdaten aus der Datei
+     * Lädt die Spielerdaten aus der JSON-Datei.
+     * Wird beim Start und nach der Charakterauswahl aufgerufen.
      */
     public static void loadData() {
         if (Files.exists(SAVE_PATH)) {
@@ -43,7 +46,8 @@ public final class PlayerData {
     }
 
     /**
-     * Speichert Spielerdaten in die Datei
+     * Speichert den aktuellen Spielstand.
+     * Wird nach jedem Sieg und beim Beenden aufgerufen.
      */
     public static void saveData() {
         try (BufferedWriter writer = Files.newBufferedWriter(SAVE_PATH)) {
@@ -54,7 +58,8 @@ public final class PlayerData {
     }
 
     /**
-     * Fügt neuen Spieler hinzu
+     * Fügt einen neuen Spieler hinzu oder ignoriert existierende.
+     * @param playerName Name des neuen Spielers
      */
     public static void addPlayer(String playerName) {
         if (playerName != null && !playerName.trim().isEmpty()) {
@@ -64,7 +69,8 @@ public final class PlayerData {
     }
 
     /**
-     * Erhöht Siegeszähler eines Spielers
+     * Erhöht den Siegeszähler eines Spielers.
+     * @param playerName Name des Siegers
      */
     public static void addWin(String playerName) {
         if (playerName != null && !playerName.trim().isEmpty()) {
@@ -74,14 +80,18 @@ public final class PlayerData {
     }
 
     /**
-     * Gibt Siege eines Spielers zurück
+     * Gibt die Anzahl der Siege eines Spielers zurück.
+     * @param playerName Name des Spielers
+     * @return Anzahl der Siege, 0 falls Spieler unbekannt
      */
     public static int getWins(String playerName) {
         return playerWins.getOrDefault(playerName, 0);
     }
 
     /**
-     * Gibt die Top-Spieler zurück
+     * Erstellt eine sortierte Liste der besten Spieler.
+     * @param count Anzahl der gewünschten Top-Spieler
+     * @return Liste der Spieler, sortiert nach Siegen
      */
     public static java.util.List<Map.Entry<String, Integer>> getTopPlayers(int count) {
         return playerWins.entrySet().stream()
@@ -91,7 +101,8 @@ public final class PlayerData {
     }
 
     /**
-     * Gibt alle Spielernamen zurück
+     * Gibt eine sortierte Liste aller Spielernamen zurück.
+     * @return Set mit allen registrierten Spielern
      */
     public static Set<String> getAllPlayerNames() {
         return new TreeSet<>(playerWins.keySet());

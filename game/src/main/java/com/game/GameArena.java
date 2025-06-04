@@ -16,17 +16,18 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Hauptspielbereich, der die Spielmechanik und Rendering verwaltet.
+ * Die GameArena ist das Herzstück des Spiels.
+ * Hier findet der eigentliche Kampf statt, mit Bewegung, Angriffen und Kollisionen.
  */
 public class GameArena {
-    /** Haupt-Container für alle Spielelemente */
+    /** Container für alle visuellen Spielelemente */
     private Pane gamePane;
     
-    /** Spieler-Charaktere */
+    /** Die beiden Kämpfer */
     private Character player1;
     private Character player2;
     
-    /** UI Elemente */
+    /** UI-Elemente zur Anzeige von Gesundheit und Stats */
     private Label healthLabel1;
     private Label healthLabel2;
     private Rectangle healthBar1; 
@@ -34,17 +35,18 @@ public class GameArena {
     private Label player1StatsLabel;
     private Label player2StatsLabel;
     
-    /** Spielzustandsverwaltung */
+    /** Speichert aktuell gedrückte Tasten und Spielstatus */
     private Set<KeyCode> activeKeys;
     private boolean gameOver = false;
     private GameManager gameManager;
     
-    /** Frame-Timing für stabile Framerate */
-    private static final long FRAME_TIME = 16_666_667; // 60 FPS
+    /** Timing-Einstellungen für flüssige 60 FPS */
+    private static final long FRAME_TIME = 16_666_667;
     private long lastUpdate = 0;
 
     /**
-     * Erstellt eine neue Spielarena mit zwei Charakteren
+     * Erstellt eine neue Arena mit zwei Kämpfern.
+     * Richtet die komplette Spielfläche ein - von Boden bis UI.
      */
     public GameArena(String p1Type, String p2Type, GameManager gameManager) {
         this.gameManager = gameManager;
@@ -84,7 +86,8 @@ public class GameArena {
     }
 
     /**
-     * Initialisiert die Gesundheitsanzeigen
+     * Erstellt die Gesundheitsanzeigen für beide Spieler.
+     * Grüne Balken und Zahlen zeigen die verbleibenden Lebenspunkte.
      */
     private void setupHealthBars() {
         healthBar1 = new Rectangle(50, 20, 200, 20);
@@ -101,7 +104,8 @@ public class GameArena {
     }
 
     /**
-     * Richtet Tastatureingaben ein
+     * Konfiguriert die Tastatureingaben.
+     * WASD + QE für Spieler 1, Pfeiltasten + KL für Spieler 2.
      */
     private void setupControls() {
         gamePane.setFocusTraversable(true);
@@ -120,7 +124,8 @@ public class GameArena {
     }
 
     /**
-     * Startet die Spielschleife
+     * Startet den Haupt-Gameloop.
+     * Sorgt für konstante 60 FPS und regelmäßige Updates.
      */
     private void startGameLoop() {
         new AnimationTimer() {
@@ -135,7 +140,8 @@ public class GameArena {
     }
 
     /**
-     * Zentrale Methode für Charakterangriffe
+     * Zentrale Methode für alle Angriffe.
+     * Verarbeitet normale und starke Angriffe, prüft Reichweiten und Cooldowns.
      */
     private void handleAttack(Character attacker, Character target, boolean isStrongAttack) {
         // Prüfe ob Angriff möglich
@@ -172,7 +178,8 @@ public class GameArena {
     }
 
     /**
-     * Aktualisiert Spielzustand jeden Frame
+     * Hauptupdate-Methode, wird jeden Frame aufgerufen.
+     * Koordiniert Bewegung, Angriffe und Spielphysik.
      */
     private void update() {
         handleMovement();
@@ -181,7 +188,8 @@ public class GameArena {
     }
 
     /**
-     * Verarbeitet Bewegungseingaben
+     * Verarbeitet die Bewegungseingaben beider Spieler.
+     * Prüft auf aktive Tasten und bewegt die Charaktere entsprechend.
      */
     private void handleMovement() {
         // Player 1
@@ -208,7 +216,8 @@ public class GameArena {
     }
 
     /**
-     * Verarbeitet Angriffsaktionen
+     * Kümmert sich um die Angriffsaktionen beider Spieler.
+     * Prüft Tasteneingaben und löst entsprechende Angriffe aus.
      */
     private void handleAttacks() {
         // Player 1 attacks
@@ -223,7 +232,8 @@ public class GameArena {
     }
 
     /**
-     * Aktualisiert Physik und Spielstatus
+     * Aktualisiert die Spielphysik.
+     * Berechnet Sprünge, Schwerkraft und Kollisionen.
      */
     private void updatePhysics() {
         player1.update();
@@ -233,7 +243,8 @@ public class GameArena {
     }
 
     /**
-     * Aktualisiert Gesundheitsanzeigen
+     * Aktualisiert die HP-Anzeigen.
+     * Passt Balken und Zahlenwerte an den aktuellen Gesundheitszustand an.
      */
     private void updateHealthBars() {
         healthBar1.setWidth(Math.max(0, player1.getHealth() * 2));
@@ -243,7 +254,8 @@ public class GameArena {
     }
 
     /**
-     * Prüft auf Spielende
+     * Prüft ob ein Spieler gewonnen hat.
+     * Zeigt Game Over Screen und aktualisiert die Siegesstatistiken.
      */
     private void checkGameOver() {
         if (!gameOver && (player1.getHealth() <= 0 || player2.getHealth() <= 0)) {
@@ -279,7 +291,8 @@ public class GameArena {
     }
 
     /**
-     * Startet das Spiel neu
+     * Setzt die Arena für eine neue Runde zurück.
+     * Heilt die Spieler und entfernt Game Over Anzeigen.
      */
     private void restartGame() {
         player1.reset();
@@ -305,14 +318,16 @@ public class GameArena {
     }
 
     /**
-     * Gibt den Haupt-Spielcontainer zurück
+     * Gibt den Haupt-Spielcontainer zurück.
+     * Wird vom GameManager verwendet um die Szene zu wechseln.
      */
     public Pane getGamePane() {
         return gamePane;
     }
 
     /**
-     * Setzt das Spiel mit neuen Charakteren zurück
+     * Setzt die Arena mit neuen Charakteren zurück.
+     * Wird nach der Charakterauswahl aufgerufen.
      */
     public void reset(String p1Character, String p2Character) {
         // Remove old players

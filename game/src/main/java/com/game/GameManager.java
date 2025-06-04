@@ -18,27 +18,33 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Verwaltet Spielablauf und UI-Übergänge
+ * Steuert den kompletten Spielablauf.
+ * Von Menüs bis zur Charakterauswahl - hier läuft alles zusammen.
  */
 public class GameManager {
-    /** Stage und Scene Management */
+    /** Fenster und UI Management */
     private Stage primaryStage;
     private Scene mainScene;
     private Scene characterSelectScene;
     private GameArena gameArena;
 
-    /** Ausgewählte Charaktere und Spieler */
+    /** Spieler und Charakterwahl */
     private String selectedP1Character = null;
     private String selectedP2Character = null;
     private String player1Name;
     private String player2Name;
 
+    /**
+     * Erstellt einen neuen GameManager.
+     * @param stage Das Hauptfenster der Anwendung
+     */
     public GameManager(Stage stage) {
         this.primaryStage = stage;
     }
 
     /**
-     * Erstellt das Hauptmenü
+     * Erstellt das Hauptmenü mit allen Buttons.
+     * Hat jetzt auch einen Exit-Button - war echt nötig.
      */
     public VBox getMainMenu() {
         VBox mainMenu = new VBox(20);
@@ -80,7 +86,8 @@ public class GameManager {
     }
 
     /**
-     * Zeigt Charakterauswahl
+     * Zeigt die Charakterauswahl.
+     * Mit Top 3 Spielern und allen Stats - schön übersichtlich.
      */
     public void showCharacterSelect() {
         // Load player data first
@@ -241,7 +248,8 @@ public class GameManager {
     }
 
     /**
-     * Dialog für Spielernamen
+     * Dialog für die Spielerauswahl/Erstellung.
+     * Speichert auch direkt neue Spieler in der Datenbank.
      */
     private Optional<String[]> getPlayerNames() {
         // Create player selection dialogs
@@ -318,7 +326,8 @@ public class GameManager {
     }
 
     /**
-     * Startet ein neues Spiel
+     * Startet das eigentliche Spiel.
+     * Erstellt die Arena und übergibt die gewählten Charaktere.
      */
     private void startGame(String p1Character, String p2Character) {
         gameArena = new GameArena(p1Character, p2Character, this);
@@ -326,6 +335,7 @@ public class GameManager {
         gameArena.getGamePane().requestFocus();
     }
 
+    /** Getter für die Spielernamen */
     public String getPlayer1Name() { return player1Name; }
     public String getPlayer2Name() { return player2Name; }
 }

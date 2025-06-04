@@ -5,13 +5,16 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 /**
- * Hauptklasse der Anwendung
+ * Hauptklasse des Spiels.
+ * Startet die JavaFX Anwendung und übergibt an den GameManager.
  */
 public class Main extends Application {
+    /** Der GameManager verwaltet dann alles weitere */
     private GameManager gameManager;
 
     /**
-     * Startet die JavaFX Anwendung
+     * Wird von JavaFX aufgerufen um die Anwendung zu starten.
+     * Erstellt das Hauptfenster und den GameManager.
      */
     @Override
     public void start(Stage primaryStage) {
@@ -22,7 +25,7 @@ public class Main extends Application {
     }
 
     /**
-     * Haupteinstiegspunkt
+     * Programmstart - übergibt direkt an JavaFX.
      */
     public static void main(String[] args) {
         launch(args);
