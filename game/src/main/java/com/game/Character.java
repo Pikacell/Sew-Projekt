@@ -1,19 +1,32 @@
 package com.game;
 
 import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
-
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a playable character in the game.
+ * Extends ImageView to display character sprites.
+ */
 public class Character extends ImageView {
-    // Cache für Bilder
+    
+    /** Cache of character images to avoid reloading */
     private static final Map<String, Image> characterImages = new HashMap<>();
+    
+    /** Path pattern for character image resources */
     private static final String IMAGE_PATH = "/images/%s.png";
 
-    // Konstanten für Charakter-Stats
+    /** Pre-defined stats for all character types */
     public static final Map<String, CharacterStats> CHARACTER_STATS = Map.of(
         "Bishop", new CharacterStats(15, 2, 180, 12, 6, "Healer with moderate ranged attacks", Color.WHITE),
         "Holyknight", new CharacterStats(22, 3, 45, 18, 4, "Holy warrior with high defense", Color.GOLD),
@@ -27,18 +40,17 @@ public class Character extends ImageView {
         "Wizard", new CharacterStats(28, 2, 220, 4, 3, "Master of destructive magic", Color.ORANGE)
     );
 
-    // Lade Bilder einmalig beim Klassenstart
+    /** Loads all character images when class is first used */
     static {
         for (String type : CHARACTER_STATS.keySet()) {
             try {
                 String imagePath = String.format(IMAGE_PATH, type.toLowerCase());
-                // Create Image from resource path string, not from InputStream
                 Image img = new Image(
                     Character.class.getResource(imagePath).toString(),
-                    150, // Fixed width
-                    150, // Fixed height
-                    true, // Preserve ratio
-                    true  // Smooth
+                    450,  // Increased from 150 to 450 (300%)
+                    450,  // Increased from 150 to 450 (300%)
+                    true, 
+                    true
                 );
                 characterImages.put(type, img);
             } catch (Exception e) {
@@ -47,7 +59,7 @@ public class Character extends ImageView {
         }
     }
 
-    // Fields
+    // Character state fields
     private String type;
     private int health = 100;
     private int maxHealth = 100;
@@ -71,6 +83,9 @@ public class Character extends ImageView {
     private static final double JUMP_FORCE = -12;
     private static final double GROUND_Y = 450; // Angepasst für kleinere Charaktere
 
+    /**
+     * Creates a new character of the specified type at the given position
+     */
     public Character(String type, double x, double y) {
         super(characterImages.getOrDefault(type, characterImages.get("Warrior")));
         CharacterStats stats = CHARACTER_STATS.getOrDefault(type, CHARACTER_STATS.get("Warrior"));
@@ -78,15 +93,34 @@ public class Character extends ImageView {
         initializeCharacter(type, x, y, stats);
     }
 
+    /**
+     * Initializes character properties and stats
+     */
     private void initializeCharacter(String type, double x, double y, CharacterStats stats) {
-        // Set image properties
-        setFitWidth(200);  
-        setFitHeight(200);
+        // Get the actual image
+        Image characterImage = getImage();
+        
+        // Calculate scale to maintain reasonable game size
+        double baseHeight = 300;  // Increased from 100 to 300
+        double scale = baseHeight / characterImage.getHeight();
+        
+        // Set image properties with calculated dimensions
+        setFitHeight(characterImage.getHeight() * scale);
+        setFitWidth(characterImage.getWidth() * scale);
         setPreserveRatio(true);
         setSmooth(true);
         setCache(true);
         
-        // Set position directly
+        // Add visible hitbox outline
+        DropShadow borderEffect = new DropShadow();
+        borderEffect.setColor(Color.LIME);
+        borderEffect.setOffsetX(0);
+        borderEffect.setOffsetY(0);
+        borderEffect.setRadius(10);  // Increased outline width
+        borderEffect.setSpread(0.8); // More visible spread
+        setEffect(borderEffect);
+        
+        // Set position
         setX(x);
         setY(GROUND_Y - getFitHeight());
         
@@ -98,7 +132,6 @@ public class Character extends ImageView {
         this.defense = stats.defense;
         this.attackSpeed = stats.attackSpeed;
         this.description = stats.description;
-        this.originalColor = stats.color;
         
         // Initialize combat state
         this.maxHealth = 100;
@@ -106,6 +139,9 @@ public class Character extends ImageView {
         this.canAttack = true;
     }
 
+    /**
+     * Makes the character jump if not already jumping
+     */
     public void jump() {
         if (!isJumping) {
             velocityY = JUMP_FORCE;
@@ -113,6 +149,9 @@ public class Character extends ImageView {
         }
     }
 
+    /**
+     * Moves the character left and updates facing direction
+     */
     public void moveLeft() {
         double newX = getX() - speed;
         if (newX >= 0) {
@@ -124,8 +163,12 @@ public class Character extends ImageView {
         }
     }
 
+    /**
+     * Moves the character right and updates facing direction
+     */
     public void moveRight() {
         double newX = getX() + speed;
+        // Use actual width for boundary check
         if (newX <= 800 - getFitWidth()) {
             setX(newX);
         }
@@ -135,6 +178,9 @@ public class Character extends ImageView {
         }
     }
 
+    /**
+     * Updates character physics and state each frame
+     */
     public void update() {
         // Gravity and jumping
         if (isJumping) {
@@ -156,21 +202,33 @@ public class Character extends ImageView {
         }
     }
 
+    /**
+     * Attempts to attack another character
+     * Returns true if attack was successful
+     */
     public boolean attack(Character target, boolean isSpecialAttack) {
         if (!canAttack) return false;
 
-        double distance = Math.abs(this.getX() - target.getX());
+        // Use actual bounds for distance calculation
+        javafx.geometry.Bounds myBounds = getCollisionBounds();
+        javafx.geometry.Bounds targetBounds = target.getCollisionBounds();
+        
+        double distance = Math.abs(myBounds.getCenterX() - targetBounds.getCenterX());
+        
         if (distance <= attackRange) {
             int attackDamage = isSpecialAttack ? damage * 2 : damage;
             target.takeDamage(attackDamage);
             canAttack = false;
             lastAttackTime = System.currentTimeMillis();
-            setEffect(new ColorAdjust(0, 1, 0, 0)); // Yellow tint
+            setEffect(new ColorAdjust(0, 1, 0, 0));
             return true;
         }
         return false;
     }
 
+    /**
+     * Applies damage to this character and shows visual feedback
+     */
     public void takeDamage(int damage) {
         health -= damage;
         if (health < 0) health = 0;
@@ -186,6 +244,9 @@ public class Character extends ImageView {
         pause.play();
     }
 
+    /**
+     * Resets character to initial state
+     */
     public void reset() {
         health = maxHealth;
         canAttack = true;
@@ -194,11 +255,25 @@ public class Character extends ImageView {
         setOpacity(1.0);
     }
 
+    /**
+     * Gets actual collision bounds for this character
+     */
+    public javafx.geometry.Bounds getCollisionBounds() {
+        return getBoundsInParent();
+    }
+
+    /**
+     * Checks if this character collides with another
+     */
+    public boolean collidesWith(Character other) {
+        return getCollisionBounds().intersects(other.getCollisionBounds());
+    }
+
+    // Various getter methods for character properties
     public int getHealth() {
         return health;
     }
 
-    // New getters
     public int getDefense() { return defense; }
     public int getAttackSpeed() { return attackSpeed; }
     public String getDescription() { return description; }
@@ -218,11 +293,17 @@ public class Character extends ImageView {
         return canAttack;
     }
 
+    /**
+     * Starts the attack cooldown period
+     */
     public void setAttackCooldown() {
         canAttack = false;
         lastAttackTime = System.currentTimeMillis();
     }
 
+    /**
+     * Updates character facing direction and adjusts position
+     */
     public void setFacingRight(boolean facing) {
         if (facingRight != facing) {
             facingRight = facing;
@@ -237,10 +318,16 @@ public class Character extends ImageView {
         }
     }
 
+    /**
+     * Returns current facing direction
+     */
     public boolean isFacingRight() {
         return facingRight;
     }
 
+    /**
+     * Checks if strong attack is available
+     */
     public boolean canUseStrongAttack() {
         if (!canUseStrongAttack) {
             long currentTime = System.currentTimeMillis();
@@ -251,12 +338,15 @@ public class Character extends ImageView {
         return canUseStrongAttack;
     }
 
+    /**
+     * Starts the strong attack cooldown period
+     */
     public void setStrongAttackCooldown() {
         canUseStrongAttack = false;
         lastStrongAttackTime = System.currentTimeMillis();
     }
 
-    // Add these methods to get dimensions
+    // Dimension and position helper methods
     public double getWidth() {
         return getFitWidth();
     }
@@ -265,7 +355,6 @@ public class Character extends ImageView {
         return getFitHeight();
     }
 
-    // Return centered position
     public double getCenterX() {
         return getLayoutX() + getFitWidth()/2;
     }
@@ -274,7 +363,9 @@ public class Character extends ImageView {
         return getLayoutY() + getFitHeight()/2;
     }
 
-    // Neue Hilfsklasse für Charakter-Stats
+    /**
+     * Record that holds the stats for a character type
+     */
     record CharacterStats(
         int damage,
         double speed,

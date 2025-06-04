@@ -17,15 +17,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Verwaltet Spielablauf und UI-Übergänge
+ */
 public class GameManager {
+    /** Stage und Scene Management */
     private Stage primaryStage;
     private Scene mainScene;
     private Scene characterSelectScene;
     private GameArena gameArena;
 
+    /** Ausgewählte Charaktere und Spieler */
     private String selectedP1Character = null;
     private String selectedP2Character = null;
-
     private String player1Name;
     private String player2Name;
 
@@ -33,6 +37,9 @@ public class GameManager {
         this.primaryStage = stage;
     }
 
+    /**
+     * Erstellt das Hauptmenü
+     */
     public VBox getMainMenu() {
         VBox mainMenu = new VBox(20);
         mainMenu.setAlignment(Pos.CENTER);
@@ -59,6 +66,9 @@ public class GameManager {
         return mainMenu;
     }
 
+    /**
+     * Zeigt Story-Modus (noch nicht implementiert)
+     */
     private void showStoryMode() {
         VBox storyBox = new VBox(20);
         storyBox.setAlignment(Pos.CENTER);
@@ -69,6 +79,9 @@ public class GameManager {
         primaryStage.getScene().setRoot(storyBox);
     }
 
+    /**
+     * Zeigt Charakterauswahl
+     */
     public void showCharacterSelect() {
         // Load player data first
         PlayerData.loadData();
@@ -227,6 +240,9 @@ public class GameManager {
         primaryStage.getScene().setRoot(characterSelect);
     }
 
+    /**
+     * Dialog für Spielernamen
+     */
     private Optional<String[]> getPlayerNames() {
         // Create player selection dialogs
         VBox dialog = new VBox(10);
@@ -301,6 +317,9 @@ public class GameManager {
             Optional.of(result) : Optional.empty();
     }
 
+    /**
+     * Startet ein neues Spiel
+     */
     private void startGame(String p1Character, String p2Character) {
         gameArena = new GameArena(p1Character, p2Character, this);
         primaryStage.setScene(new Scene(gameArena.getGamePane(), 800, 600));

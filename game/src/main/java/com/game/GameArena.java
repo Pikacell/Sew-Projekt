@@ -15,26 +15,37 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Hauptspielbereich, der die Spielmechanik und Rendering verwaltet.
+ */
 public class GameArena {
+    /** Haupt-Container für alle Spielelemente */
     private Pane gamePane;
+    
+    /** Spieler-Charaktere */
     private Character player1;
     private Character player2;
+    
+    /** UI Elemente */
     private Label healthLabel1;
     private Label healthLabel2;
-    private Set<KeyCode> activeKeys;
-    private Rectangle healthBar1;
+    private Rectangle healthBar1; 
     private Rectangle healthBar2;
-    private boolean gameOver = false;
-    private GameManager gameManager;
-    // Add new field for projectiles
-    private final List<Projectile> projectiles = new ArrayList<>();
     private Label player1StatsLabel;
     private Label player2StatsLabel;
-
-    // Add frame limiting
-    private static final long FRAME_TIME = 16_666_667; // ~60 FPS in nanoseconds
+    
+    /** Spielzustandsverwaltung */
+    private Set<KeyCode> activeKeys;
+    private boolean gameOver = false;
+    private GameManager gameManager;
+    
+    /** Frame-Timing für stabile Framerate */
+    private static final long FRAME_TIME = 16_666_667; // 60 FPS
     private long lastUpdate = 0;
 
+    /**
+     * Erstellt eine neue Spielarena mit zwei Charakteren
+     */
     public GameArena(String p1Type, String p2Type, GameManager gameManager) {
         this.gameManager = gameManager;
         gamePane = new Pane();
@@ -72,6 +83,9 @@ public class GameArena {
         gamePane.getChildren().addAll(player1StatsLabel, player2StatsLabel);
     }
 
+    /**
+     * Initialisiert die Gesundheitsanzeigen
+     */
     private void setupHealthBars() {
         healthBar1 = new Rectangle(50, 20, 200, 20);
         healthBar2 = new Rectangle(550, 20, 200, 20);
@@ -86,6 +100,9 @@ public class GameArena {
         healthLabel2.setLayoutY(40);
     }
 
+    /**
+     * Richtet Tastatureingaben ein
+     */
     private void setupControls() {
         gamePane.setFocusTraversable(true);
         gamePane.requestFocus();
@@ -102,6 +119,9 @@ public class GameArena {
         });
     }
 
+    /**
+     * Startet die Spielschleife
+     */
     private void startGameLoop() {
         new AnimationTimer() {
             @Override
@@ -114,170 +134,107 @@ public class GameArena {
         }.start();
     }
 
-    private void update() {
-        // Entferne Debug-Ausgaben für bessere Performance
-        // System.out.println("Player 1 position: " + player1.getX());
-        // System.out.println("Player 2 position: " + player2.getX());
-        
-        // Boundary checks
-        if (player1.getX() < 0) player1.setX(0);
-        if (player1.getX() > 750) player1.setX(750);
-        if (player2.getX() < 0) player2.setX(0);
-        if (player2.getX() > 750) player2.setX(750);
+    /**
+     * Zentrale Methode für Charakterangriffe
+     */
+    private void handleAttack(Character attacker, Character target, boolean isStrongAttack) {
+        // Prüfe ob Angriff möglich
+        if (isStrongAttack && !attacker.canUseStrongAttack()) {
+            return;
+        }
+        if (!attacker.canAttack()) {
+            return;
+        }
 
-        // Add jumping controls
+        // Unterscheide zwischen Nah- und Fernkampf
+        boolean isRanged = attacker.getType().equals("Magician") || 
+                          attacker.getType().equals("Bishop") || 
+                          attacker.getType().equals("Priestess") || 
+                          attacker.getType().equals("Wizard");
+
+        if (isRanged) {
+            double heightDiff = Math.abs(attacker.getY() - target.getY());
+            double distance = Math.abs(attacker.getX() - target.getX());
+            
+            if (heightDiff < 50 && distance <= attacker.getAttackRange()) {
+                int damage = attacker.getDamage() * (isStrongAttack ? 2 : 1);
+                target.takeDamage(damage);
+                attacker.setAttackCooldown();
+                if (isStrongAttack) {
+                    attacker.setStrongAttackCooldown();
+                }
+            }
+        } else {
+            if (attacker.attack(target, isStrongAttack) && isStrongAttack) {
+                attacker.setStrongAttackCooldown();
+            }
+        }
+    }
+
+    /**
+     * Aktualisiert Spielzustand jeden Frame
+     */
+    private void update() {
+        handleMovement();
+        handleAttacks();
+        updatePhysics();
+    }
+
+    /**
+     * Verarbeitet Bewegungseingaben
+     */
+    private void handleMovement() {
+        // Player 1
+        if (activeKeys.contains(KeyCode.A)) {
+            player1.moveLeft();
+        }
+        if (activeKeys.contains(KeyCode.D)) {
+            player1.moveRight();
+        }
         if (activeKeys.contains(KeyCode.W)) {
             player1.jump();
+        }
+
+        // Player 2 
+        if (activeKeys.contains(KeyCode.LEFT)) {
+            player2.moveLeft();
+        }
+        if (activeKeys.contains(KeyCode.RIGHT)) {
+            player2.moveRight();
         }
         if (activeKeys.contains(KeyCode.UP)) {
             player2.jump();
         }
+    }
 
-        // Player 1 controls - WASD + QE
-        if (activeKeys.contains(KeyCode.A)) {
-            player1.moveLeft();
-            player1.setFacingRight(false);
-        }
-        if (activeKeys.contains(KeyCode.D)) {
-            player1.moveRight();
-            player1.setFacingRight(true);
-        }
-        
-        // Player 1 melee attack handling
+    /**
+     * Verarbeitet Angriffsaktionen
+     */
+    private void handleAttacks() {
+        // Player 1 attacks
         if (activeKeys.contains(KeyCode.Q) || activeKeys.contains(KeyCode.E)) {
-            if (player1.getType().equals("Archer") || player1.getType().equals("Mage")) {
-                fireProjectile(player1, player1.isFacingRight());
-            } else {
-                boolean isStrongAttack = activeKeys.contains(KeyCode.E);
-                if (isStrongAttack && !player1.canUseStrongAttack()) {
-                    return;
-                }
-                if (player1.canAttack()) {
-                    player1.attack(player2, isStrongAttack);
-                    if (isStrongAttack) {
-                        player1.setStrongAttackCooldown();
-                    }
-                }
-            }
+            handleAttack(player1, player2, activeKeys.contains(KeyCode.E));
         }
 
-        // Player 2 controls
-        if (activeKeys.contains(KeyCode.LEFT)) {
-            player2.moveLeft();
-            player2.setFacingRight(false);
-        }
-        if (activeKeys.contains(KeyCode.RIGHT)) {
-            player2.moveRight();
-            player2.setFacingRight(true);
-        }
-        
-        // Player 2 melee attack handling
+        // Player 2 attacks
         if (activeKeys.contains(KeyCode.K) || activeKeys.contains(KeyCode.L)) {
-            if (player2.getType().equals("Archer") || player2.getType().equals("Mage")) {
-                fireProjectile(player2, player2.isFacingRight());
-            } else {
-                boolean isStrongAttack = activeKeys.contains(KeyCode.L);
-                if (isStrongAttack && !player2.canUseStrongAttack()) {
-                    return;
-                }
-                if (player2.canAttack()) {
-                    player2.attack(player1, isStrongAttack);
-                    if (isStrongAttack) {
-                        player2.setStrongAttackCooldown();
-                    }
-                }
-            }
+            handleAttack(player2, player1, activeKeys.contains(KeyCode.L));
         }
+    }
 
-        // Update physics and projectiles
+    /**
+     * Aktualisiert Physik und Spielstatus
+     */
+    private void updatePhysics() {
         player1.update();
         player2.update();
-        updateProjectiles();
         updateHealthBars();
         checkGameOver();
     }
 
-    private void updateProjectiles() {
-        // Use iterator pattern for better performance
-        Iterator<Projectile> iterator = projectiles.iterator();
-        while (iterator.hasNext()) {
-            Projectile proj = iterator.next();
-            proj.update();
-            
-            if (isProjectileOutOfBounds(proj) || handleProjectileCollision(proj)) {
-                gamePane.getChildren().remove(proj);
-                iterator.remove();
-            }
-        }
-    }
-
-    private boolean isProjectileOutOfBounds(Projectile proj) {
-        double x = proj.getTranslateX();
-        return x > 800 || x < 0;
-    }
-
-    private boolean handleProjectileCollision(Projectile proj) {
-        Character target = proj.getData().equals("player1") ? player2 : player1;
-        if (proj.getBoundsInParent().intersects(target.getBoundsInParent())) {
-            target.takeDamage(proj.getDamage());
-            return true;
-        }
-        return false;
-    }
-
-    private void fireProjectile(Character shooter, boolean facingRight) {
-        if (!shooter.canAttack()) return;
-        
-        // Check if trying to use strong attack
-        boolean isStrongAttack = (shooter == player1 && activeKeys.contains(KeyCode.E)) || 
-                                (shooter == player2 && activeKeys.contains(KeyCode.L));
-        
-        // If strong attack but on cooldown, return
-        if (isStrongAttack && !shooter.canUseStrongAttack()) {
-            return;
-        }
-        
-        double speed;
-        double size;
-        
-        // Set base speed and size
-        if (shooter.getType().equals("Mage")) {
-            speed = 10;
-            size = 8;
-        } else if (shooter.getType().equals("Archer")) {
-            speed = 20;
-            size = 4;
-        } else {
-            speed = 15;
-            size = 5;
-        }
-        
-        // Set direction based on facing direction
-        if (!shooter.isFacingRight()) {
-            speed = -speed;
-        }
-        
-        // Create projectile with damage multiplier for strong attack
-        Projectile proj = new Projectile(
-            shooter.getX() + (shooter.isFacingRight() ? shooter.getFitWidth() : 0),
-            shooter.getY() + shooter.getFitHeight()/2,
-            speed,
-            shooter.getDamage() * (isStrongAttack ? 2 : 1),
-            shooter.getOriginalColor(),
-            size
-        );
-        
-        proj.setData(shooter == player1 ? "player1" : "player2");
-        projectiles.add(proj);
-        gamePane.getChildren().add(proj);
-        
-        // Set cooldowns
-        shooter.setAttackCooldown();
-        if (isStrongAttack) {
-            shooter.setStrongAttackCooldown();
-        }
-    }
-
+    /**
+     * Aktualisiert Gesundheitsanzeigen
+     */
     private void updateHealthBars() {
         healthBar1.setWidth(Math.max(0, player1.getHealth() * 2));
         healthBar2.setWidth(Math.max(0, player2.getHealth() * 2));
@@ -285,6 +242,9 @@ public class GameArena {
         healthLabel2.setText(player2.getHealth() + "/100");
     }
 
+    /**
+     * Prüft auf Spielende
+     */
     private void checkGameOver() {
         if (!gameOver && (player1.getHealth() <= 0 || player2.getHealth() <= 0)) {
             gameOver = true;
@@ -318,6 +278,9 @@ public class GameArena {
         }
     }
 
+    /**
+     * Startet das Spiel neu
+     */
     private void restartGame() {
         player1.reset();
         player2.reset();
@@ -341,15 +304,17 @@ public class GameArena {
         gamePane.requestFocus();
     }
 
+    /**
+     * Gibt den Haupt-Spielcontainer zurück
+     */
     public Pane getGamePane() {
         return gamePane;
     }
 
+    /**
+     * Setzt das Spiel mit neuen Charakteren zurück
+     */
     public void reset(String p1Character, String p2Character) {
-        // Clear existing projectiles
-        projectiles.forEach(proj -> gamePane.getChildren().remove(proj));
-        projectiles.clear();
-        
         // Remove old players
         gamePane.getChildren().removeAll(player1, player2);
         

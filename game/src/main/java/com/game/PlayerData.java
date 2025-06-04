@@ -7,10 +7,16 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Verwaltet persistente Spielerdaten wie Siege
+ */
 public final class PlayerData {
+    /** Speichert Spielersiege Thread-sicher */
     private static final Map<String, Integer> playerWins = new ConcurrentHashMap<>();
-    private static final Path SAVE_PATH = Paths.get(System.getProperty("user.home"), "GameData", "players.json");
     
+    /** Pfad zur Speicherdatei */
+    private static final Path SAVE_PATH = Paths.get(System.getProperty("user.home"), "GameData", "players.json");
+
     static {
         try {
             Files.createDirectories(SAVE_PATH.getParent());
@@ -19,6 +25,9 @@ public final class PlayerData {
         }
     }
 
+    /**
+     * Lädt Spielerdaten aus der Datei
+     */
     public static void loadData() {
         if (Files.exists(SAVE_PATH)) {
             try (BufferedReader reader = Files.newBufferedReader(SAVE_PATH)) {
@@ -33,6 +42,9 @@ public final class PlayerData {
         }
     }
 
+    /**
+     * Speichert Spielerdaten in die Datei
+     */
     public static void saveData() {
         try (BufferedWriter writer = Files.newBufferedWriter(SAVE_PATH)) {
             new Gson().toJson(playerWins, writer);
@@ -41,6 +53,9 @@ public final class PlayerData {
         }
     }
 
+    /**
+     * Fügt neuen Spieler hinzu
+     */
     public static void addPlayer(String playerName) {
         if (playerName != null && !playerName.trim().isEmpty()) {
             playerWins.putIfAbsent(playerName, 0);
@@ -48,6 +63,9 @@ public final class PlayerData {
         }
     }
 
+    /**
+     * Erhöht Siegeszähler eines Spielers
+     */
     public static void addWin(String playerName) {
         if (playerName != null && !playerName.trim().isEmpty()) {
             playerWins.put(playerName, playerWins.getOrDefault(playerName, 0) + 1);
@@ -55,10 +73,16 @@ public final class PlayerData {
         }
     }
 
+    /**
+     * Gibt Siege eines Spielers zurück
+     */
     public static int getWins(String playerName) {
         return playerWins.getOrDefault(playerName, 0);
     }
 
+    /**
+     * Gibt die Top-Spieler zurück
+     */
     public static java.util.List<Map.Entry<String, Integer>> getTopPlayers(int count) {
         return playerWins.entrySet().stream()
             .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
@@ -66,6 +90,9 @@ public final class PlayerData {
             .toList();
     }
 
+    /**
+     * Gibt alle Spielernamen zurück
+     */
     public static Set<String> getAllPlayerNames() {
         return new TreeSet<>(playerWins.keySet());
     }
