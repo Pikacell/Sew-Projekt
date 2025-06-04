@@ -1,6 +1,6 @@
 # 🥋 2D Kampfspiel
 
-Das ist unser in JavaFX entwickeltes 2D-Kampfspiel, in dem du im lokalen Multiplayer gegen deine Freunde antreten kannst. Dieses Projekt hat viel Leid bereitet aber auch Freude (der Abgabe Termin) und jetzt steht dieses Teilweise Fragwürdiges Spiel als ein ganzes hier.
+Das ist unser in JavaFX entwickeltes 2D-Kampfspiel, in dem du im lokalen Multiplayer gegen deine Freunde antreten kannst. Dieses Projekt hat viel Leid bereitet aber auch Freude (der Abgabe Termin) und jetzt steht dieses Teilweise Fragwürdiges Spiel als ein ganzes hier. Es gab auch mal das Projektile geschossen werden, aber beim wechsel von Boxen zu actual Characteren is das irgendwie kaputt gegangen und da das trotz vieler Rettungsversuche nd mehr geklappt hat muss der Fernkampf Character jetzt einfach auf der Selben höhe wie der Gegner sein.
 
 ---
 
@@ -60,7 +60,7 @@ Entwickelt mit:
    ```bash
    git clone <repository-url>
    cd <projektverzeichnis>
-````
+``
 
 3. Projekt bauen:
 
@@ -94,7 +94,7 @@ Das Spiel speichert Spielerstatistiken automatisch unter:
 * Weitere Charaktere
 * Story-Modus
 * Sound und Musik (wie das geht? Absolut keine Ahnung)
-
+* Wieder Projektile einbauen
 
 ---
 
